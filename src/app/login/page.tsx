@@ -1,0 +1,116 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/supabaseClient";
+
+export default function Login() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  // Typing animation messages
+  const messages = ["Welcome Back!", "Hello There!", "Log In to Start!"];
+  const [displayedText, setDisplayedText] = useState("");
+  const [messageIndex, setMessageIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const speed = isDeleting ? 50 : 150;
+    const timeout = setTimeout(() => {
+      const currentMessage = messages[messageIndex];
+      if (!isDeleting) {
+        setDisplayedText(currentMessage.slice(0, charIndex + 1));
+        setCharIndex(charIndex + 1);
+        if (charIndex + 1 === currentMessage.length) {
+          setTimeout(() => setIsDeleting(true), 1000);
+        }
+      } else {
+        setDisplayedText(currentMessage.slice(0, charIndex - 1));
+        setCharIndex(charIndex - 1);
+        if (charIndex - 1 === 0) {
+          setIsDeleting(false);
+          setMessageIndex((messageIndex + 1) % messages.length);
+        }
+      }
+    }, speed);
+    return () => clearTimeout(timeout);
+  }, [charIndex, isDeleting, messageIndex]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) setError(error.message);
+  else router.push("/"); // go to homepage after successful login
+};
+
+  return (
+    <div className="flex h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100">
+      {/* Left Side Typing Animation */}
+      <div className="w-1/2 flex items-center justify-center">
+        <div className="text-center px-8">
+          <h1 className="text-5xl font-bold mb-6 border-r-4 pr-2 animate-blink-cursor text-gray-800">
+            {displayedText}
+          </h1>
+          <p className="text-lg text-gray-600">
+            Log in to continue exploring your dashboard.
+          </p>
+        </div>
+      </div>
+
+      {/* Right Side Login Card */}
+      <div className="w-1/2 flex items-center justify-center">
+        <form
+          onSubmit={handleLogin}
+          className="bg-white/60 backdrop-blur-lg p-8 rounded-3xl shadow-2xl w-full max-w-md hover:scale-105 transition-transform"
+        >
+          <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+            Login
+          </h1>
+
+          {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+
+          <div className="space-y-4">
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-400"
+              required
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-400"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full mt-6 bg-blue-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:bg-blue-700 transition"
+          >
+            Login
+          </button>
+
+        </form>
+      </div>
+
+      <style jsx>{`
+        .animate-blink-cursor {
+          animation: blink 0.7s infinite;
+        }
+        @keyframes blink {
+          0%, 100% { border-color: transparent; }
+          50% { border-color: gray; }
+        }
+      `}</style>
+    </div>
+  );
+}
