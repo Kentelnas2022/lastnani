@@ -1,34 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Education() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewContent, setPreviewContent] = useState(null);
-  const [contents, setContents] = useState([
-    {
-      id: 1,
-      title: "Proper Waste Segregation Guide",
-      description:
-        "Learn how to properly separate biodegradable, non-biodegradable, and recyclable materials....",
-      category: "segregation",
-      audience: "all",
-      views: 1245,
-      status: "Published",
-      media: null,
-    },
-    {
-      id: 2,
-      title: "Composting at Home",
-      description:
-        "Step-by-step guide to creating your own compost bin and reducing organic waste....",
-      category: "composting",
-      audience: "households",
-      views: 0,
-      status: "Draft",
-      media: null,
-    },
-  ]);
-
+  const [contents, setContents] = useState([]);
   const [formData, setFormData] = useState({
     id: null,
     title: "",
@@ -39,6 +15,19 @@ export default function Education() {
     media: null,
     mediaType: "",
   });
+
+  // Load existing data
+  useEffect(() => {
+    const stored = localStorage.getItem("educationalContents");
+    if (stored) setContents(JSON.parse(stored));
+  }, []);
+
+  // Save every change and trigger storage event for other tabs/components
+  useEffect(() => {
+    localStorage.setItem("educationalContents", JSON.stringify(contents));
+    // Trigger manual event to notify same tab (since storage event only fires on other tabs)
+    window.dispatchEvent(new Event("storage"));
+  }, [contents]);
 
   const openAddModal = () => {
     setFormData({
@@ -84,7 +73,6 @@ export default function Education() {
       mediaType: formData.mediaType,
     };
 
-    // if editing, replace; else add new
     setContents((prev) => {
       const exists = prev.find((c) => c.id === formData.id);
       if (exists) {

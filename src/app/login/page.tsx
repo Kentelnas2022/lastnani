@@ -10,8 +10,8 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // Typing animation messages
-  const messages = ["Welcome Back!", "Hello There!", "Log In to Start!"];
+  // Typing animation
+  const messages = ["Welcome!", "Hello There!", "Log In to Start!"];
   const [displayedText, setDisplayedText] = useState("");
   const [messageIndex, setMessageIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
@@ -40,15 +40,55 @@ export default function Login() {
   }, [charIndex, isDeleting, messageIndex]);
 
   const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) setError(error.message);
-  else router.push("/"); // go to homepage after successful login
-};
+    e.preventDefault();
+    setError(null);
+
+    const { error, data } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    const user = data.user;
+    if (!user) return;
+
+    // 🔹 Ensure resident profile exists
+    const { data: resident, error: fetchError } = await supabase
+      .from("residents")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!resident && !fetchError) {
+      await supabase.from("residents").insert([
+        {
+          id: user.id,
+          fullname: user.email?.split("@")[0] || "Unnamed",
+          address: "Unknown",
+          email: user.email,
+        },
+      ]);
+    }
+
+    // Role-based redirect
+    const adminEmail = "tristandominicparajes.202200583@gmail.com"; // Admin
+    const collectorEmail = "parajestristan4@gmail.com"; // Collector
+
+    if (user.email === adminEmail) {
+      router.push("/"); // official section
+    } else if (user.email === collectorEmail) {
+      router.push("/collector");
+    } else {
+      router.push("/residents");
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100">
-      {/* Left Side Typing Animation */}
       <div className="w-1/2 flex items-center justify-center">
         <div className="text-center px-8">
           <h1 className="text-5xl font-bold mb-6 border-r-4 pr-2 animate-blink-cursor text-gray-800">
@@ -60,7 +100,6 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Right Side Login Card */}
       <div className="w-1/2 flex items-center justify-center">
         <form
           onSubmit={handleLogin}
@@ -69,8 +108,9 @@ export default function Login() {
           <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
             Login
           </h1>
-
-          {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+          {error && (
+            <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
+          )}
 
           <div className="space-y-4">
             <input
@@ -78,17 +118,16 @@ export default function Login() {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-400"
               required
+              className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-400"
             />
-
             <input
               type="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-400"
               required
+              className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-400"
             />
           </div>
 
@@ -99,6 +138,12 @@ export default function Login() {
             Login
           </button>
 
+          <p className="mt-6 text-sm text-center text-gray-600">
+            Don't have an account?{" "}
+            <a href="/register" className="text-blue-600 hover:underline">
+              Sign Up
+            </a>
+          </p>
         </form>
       </div>
 
@@ -107,8 +152,13 @@ export default function Login() {
           animation: blink 0.7s infinite;
         }
         @keyframes blink {
-          0%, 100% { border-color: transparent; }
-          50% { border-color: gray; }
+          0%,
+          100% {
+            border-color: transparent;
+          }
+          50% {
+            border-color: gray;
+          }
         }
       `}</style>
     </div>

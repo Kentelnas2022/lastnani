@@ -7,26 +7,50 @@ import { supabase } from "@/supabaseClient";
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [purok, setPurok] = useState("");
+  const [address, setAddress] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
-    const { error } = await supabase.auth.signUp({
+    // Step 1: Sign up user
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: name }, // ✅ store full name in user metadata
+        data: { full_name: name },
       },
     });
 
-    if (error) {
-      setError(error.message);
-    } else {
-      router.push("/login"); // ✅ redirect after signup
+    if (signUpError) {
+      setError(signUpError.message);
+      return;
     }
+
+    // Step 2: Insert resident details
+    const user = data.user;
+    if (user) {
+      const { error: insertError } = await supabase.from("residents").insert([
+        {
+          user_id: user.id,
+          name,
+          mobile,
+          purok,
+          address,
+        },
+      ]);
+      if (insertError) {
+        setError(insertError.message);
+        return;
+      }
+    }
+
+    router.push("/login");
   };
 
   return (
@@ -35,44 +59,18 @@ export default function RegisterPage() {
         onSubmit={handleRegister}
         className="bg-white/90 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md"
       >
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-2">
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-4">
           Create Account
         </h2>
-        <p className="text-gray-500 text-center mb-6">
-          Join us and get started
-        </p>
+        {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
 
-        {error && (
-          <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
-        )}
-
-        <div className="space-y-4">
-          <input
-            type="text"
-            placeholder="Full Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-          />
-
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-          />
+        <div className="space-y-3">
+          <input type="text" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required className="w-full px-4 py-2 border rounded-xl" />
+          <input type="text" placeholder="Mobile Number" value={mobile} onChange={(e) => setMobile(e.target.value)} required className="w-full px-4 py-2 border rounded-xl" />
+          <input type="text" placeholder="Purok" value={purok} onChange={(e) => setPurok(e.target.value)} required className="w-full px-4 py-2 border rounded-xl" />
+          <input type="text" placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} required className="w-full px-4 py-2 border rounded-xl" />
+          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full px-4 py-2 border rounded-xl" />
+          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required className="w-full px-4 py-2 border rounded-xl" />
         </div>
 
         <button

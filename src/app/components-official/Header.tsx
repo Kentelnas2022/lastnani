@@ -1,4 +1,3 @@
-// Header.tsx
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/supabaseClient";
@@ -31,19 +30,19 @@ export default function Header() {
 
   return (
     <header className="relative overflow-hidden shadow-2xl">
-      {/* Gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#667eea] to-[#764ba2]"></div>
+      {/* Gradient red background */}
+      <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-800"></div>
 
-      {/* Subtle dot pattern */}
+      {/* Subtle white dot pattern */}
       <div
         className="absolute inset-0 opacity-10"
         style={{
           backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+            "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
         }}
       ></div>
 
-      {/* Black overlay */}
+      {/* Dark overlay for contrast */}
       <div className="absolute inset-0 bg-black opacity-10"></div>
 
       {/* Header Content */}
@@ -51,7 +50,7 @@ export default function Header() {
         <div className="flex items-center justify-between flex-wrap gap-4">
           {/* Left side: Logo + Title */}
           <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
-            <div className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg p-2 sm:p-3 rounded-xl sm:rounded-2xl shadow-lg neon-glow floating-icon flex-shrink-0">
+            <div className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg p-2 sm:p-3 rounded-xl sm:rounded-2xl shadow-lg flex-shrink-0">
               <svg
                 className="w-8 h-8 sm:w-10 sm:h-10 text-white"
                 fill="currentColor"
@@ -62,10 +61,10 @@ export default function Header() {
             </div>
 
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent leading-tight">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white via-red-100 to-red-200 bg-clip-text text-transparent leading-tight">
                 Barangay Tambacan
               </h1>
-              <p className="text-blue-100 font-medium flex items-center text-sm sm:text-base">
+              <p className="text-red-100 font-medium flex items-center text-sm sm:text-base">
                 <span className="status-indicator w-2 h-2 bg-green-400 rounded-full mr-2 flex-shrink-0"></span>
                 <span className="truncate">Smart Waste Management System</span>
               </p>
@@ -74,18 +73,18 @@ export default function Header() {
 
           {/* Right side: Time + Admin Panel + Logout */}
           <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
-            <div className="glass-card px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium text-white">
+            <div className="px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium text-white bg-red-700 bg-opacity-80 shadow-md">
               🕐 {time}
             </div>
-            <div className="glass-card px-3 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-gray-800 shadow-lg text-xs sm:text-base bg-white bg-opacity-90">
-              👨‍💼 <span className="hidden sm:inline">Admin Panel</span>
+            <div className="px-3 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-red-700 shadow-lg text-xs sm:text-base bg-white hover:bg-red-50 transition">
+              <span className="hidden sm:inline">Admin Panel</span>
               <span className="sm:hidden">Admin</span>
             </div>
             <button
               onClick={handleLogout}
-              className="glass-card px-3 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-white shadow-lg text-xs sm:text-base bg-red-500 hover:bg-red-600 transition"
+              className="px-3 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-white shadow-lg text-xs sm:text-base bg-red-600 hover:bg-red-700 transition"
             >
-              🚪 Logout
+              Logout
             </button>
           </div>
         </div>
