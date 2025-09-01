@@ -2,14 +2,25 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/supabaseClient"; // <-- make sure this exists
+import { supabase } from "@/supabaseClient";
 import HomeTab from "./HomeTab";
 import ScheduleTab from "./ScheduleTab";
 import ReportsTab from "./ReportsTab";
 import FeedbackTab from "./FeedbackTab";
 import EducationTab from "./EducationTab";
-import ProfileModal from "./ProfileModal";
+import Profile from "./Profile";
 import EmergencyModal from "./EmergencyModal";
+import {
+  Bars3Icon,
+  HomeModernIcon,
+  CalendarDaysIcon,
+  DocumentTextIcon,
+  ChatBubbleLeftRightIcon,
+  BookOpenIcon,
+  ArrowRightOnRectangleIcon,
+  XMarkIcon,
+  UserCircleIcon,
+} from "@heroicons/react/24/outline";
 
 const schedulesByPurok = {
   "Purok 1": [
@@ -33,17 +44,25 @@ const schedulesByPurok = {
   ],
 };
 
+const navTabs = [
+  { key: "home", label: "Home", icon: HomeModernIcon },
+  { key: "schedule", label: "Schedule", icon: CalendarDaysIcon },
+  { key: "reports", label: "Reports", icon: DocumentTextIcon },
+  { key: "feedback", label: "Feedback", icon: ChatBubbleLeftRightIcon },
+  { key: "education", label: "Education", icon: BookOpenIcon },
+  { key: "profile", label: "Profile", icon: UserCircleIcon },
+];
+
 export default function Residents() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("home");
-  const [showProfile, setShowProfile] = useState(false);
   const [showEmergency, setShowEmergency] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [reports, setReports] = useState([]);
   const [feedback, setFeedback] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // 🔹 Check session & load resident profile
   useEffect(() => {
     const loadUser = async () => {
       const { data } = await supabase.auth.getSession();
@@ -51,7 +70,6 @@ export default function Residents() {
         router.push("/login");
         return;
       }
-
       const { data: resident, error } = await supabase
         .from("residents")
         .select("*")
@@ -64,14 +82,10 @@ export default function Residents() {
 
       if (resident) {
         setCurrentUser(resident);
-
-        // Role check: if the user is not an official, redirect to login
-        if (resident.role !== 'official') {
-          console.warn("⚠️ User is not authorized to access this page.");
+        if (resident.role !== "official") {
           router.push("/login");
         }
       } else {
-        console.warn("⚠️ No resident found for this user. Using fallback profile.");
         setCurrentUser({
           name: "Guest",
           purok: "Purok 1",
@@ -79,7 +93,6 @@ export default function Residents() {
           address: "N/A",
         });
       }
-
       setLoading(false);
     };
     loadUser();
@@ -106,57 +119,98 @@ export default function Residents() {
 
   const nextCollection = getNextCollection();
 
-  if (loading) return <div className="text-center mt-10">Loading...</div>;
+  if (loading) return <div className="text-center mt-10 text-black">Loading...</div>;
+
+  // Logout handler
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
 
   return (
-    <div className="bg-gray-100 min-h-screen pb-20">
+    <div className="bg-white min-h-screen pb-0">
       {/* Header */}
-      <header className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 pb-6 pt-8">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">🏘️</div>
-            <div>
-              <h1 className="text-xl font-bold">Hello, {currentUser?.name?.split(" ")[0]}</h1>
-              <p className="text-white/80 text-sm">{currentUser?.purok}</p>
-            </div>
+      <header className="bg-red-600 text-white px-4 py-2 relative">
+        <div className="flex items-center justify-between">
+          {/* Left: Welcome */}
+          <div>
+            <h1 className="text-base sm:text-lg font-bold leading-tight text-white">
+              Welcome back{currentUser?.name ? `, ${currentUser.name.split(" ")[0]}` : ""}
+            </h1>
+            <p className="text-white/80 text-xs sm:text-sm">{currentUser?.purok}</p>
+            {nextCollection && (
+              <p className="mt-1 text-sm sm:text-base font-semibold text-white">
+                {nextCollection.label}, {nextCollection.time}
+              </p>
+            )}
           </div>
+          {/* Right: Profile and Burger */}
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => setShowProfile(true)}
-              className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center"
+              onClick={() => setActiveTab("profile")}
+              className="w-9 h-9 bg-white rounded-full flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+              aria-label="Profile"
             >
-              👤
+              <UserCircleIcon className="w-6 h-6 text-red-600" />
             </button>
             <button
-              onClick={async () => {
-                await supabase.auth.signOut();
-                router.push("/login");
-              }}
-              className="px-3 py-1 bg-red-500 text-white rounded-xl text-sm"
+              className="w-9 h-9 bg-white rounded-full flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open navigation"
             >
-              Logout
+              <Bars3Icon className="w-6 h-6 text-red-600" />
             </button>
           </div>
         </div>
-
-        {nextCollection && (
-          <div className="bg-white/95 rounded-2xl p-4 shadow-lg">
-            <div className="flex items-center justify-between text-gray-800">
-              <div>
-                <p className="text-sm text-gray-600">Next Collection</p>
-                <p className="text-xl font-bold text-indigo-600">
-                  {nextCollection.label}, {nextCollection.time}
-                </p>
-                <p className="text-sm text-gray-600">{nextCollection.type}</p>
-              </div>
-              <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">🗑️</div>
-            </div>
-          </div>
-        )}
       </header>
 
-      {/* Tabs */}
-      <main className="px-4 py-6 space-y-6">
+      {/* Sidebar for all screens */}
+      <div
+        className={`fixed inset-0 z-30 bg-black/40 transition-opacity duration-300 ${
+          sidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setSidebarOpen(false)}
+      />
+      <aside
+        className={`fixed top-0 right-0 z-40 h-full w-64 bg-white shadow-2xl transform transition-transform duration-300
+        ${sidebarOpen ? "translate-x-0" : "translate-x-full"}`}
+      >
+        <div className="flex items-center justify-between px-4 py-4 border-b">
+          <span className="font-bold text-lg text-red-600">Menu</span>
+          <button onClick={() => setSidebarOpen(false)} aria-label="Close navigation">
+            <XMarkIcon className="w-7 h-7 text-black" />
+          </button>
+        </div>
+        <nav className="flex flex-col gap-1 mt-4">
+          {navTabs.map((tab) => (
+            <button
+              key={tab.key}
+              className={`flex items-center gap-3 px-6 py-3 text-base font-medium text-left transition ${
+                activeTab === tab.key
+                  ? "bg-red-100 text-red-700"
+                  : "text-black hover:bg-red-50"
+              }`}
+              onClick={() => {
+                setActiveTab(tab.key);
+                setSidebarOpen(false);
+              }}
+            >
+              <tab.icon className="w-6 h-6" />
+              {tab.label}
+            </button>
+          ))}
+          <button
+            className="flex items-center gap-3 px-6 py-3 text-base font-medium text-red-600 hover:bg-red-50 mt-2"
+            onClick={handleLogout}
+          >
+            <ArrowRightOnRectangleIcon className="w-6 h-6" />
+            Logout
+          </button>
+        </nav>
+      </aside>
+
+      {/* Main content */}
+      <main className="px-2 py-6 space-y-6 max-w-2xl mx-auto text-black">
         {activeTab === "home" && <HomeTab setActiveTab={setActiveTab} />}
         {activeTab === "schedule" && (
           <ScheduleTab currentUser={currentUser} schedulesByPurok={schedulesByPurok} />
@@ -164,32 +218,12 @@ export default function Residents() {
         {activeTab === "reports" && <ReportsTab reports={reports} setReports={setReports} />}
         {activeTab === "feedback" && <FeedbackTab feedback={feedback} setFeedback={setFeedback} />}
         {activeTab === "education" && <EducationTab />}
+        {activeTab === "profile" && (
+          <Profile user={currentUser} setUser={setCurrentUser} />
+        )}
       </main>
 
-      {/* Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2">
-        {[ 
-          { key: "home", label: "Home", icon: "🏠" },
-          { key: "schedule", label: "Schedule", icon: "📅" },
-          { key: "reports", label: "Reports", icon: "📢" },
-          { key: "feedback", label: "Feedback", icon: "💬" },
-          { key: "education", label: "Education", icon: "📚" },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            className={`flex flex-col items-center p-2 ${activeTab === tab.key ? "text-indigo-600" : "text-gray-500"}`}
-            onClick={() => setActiveTab(tab.key)}
-          >
-            <span>{tab.icon}</span>
-            <span className="text-xs">{tab.label}</span>
-          </button>
-        ))}
-      </nav>
-
       {/* Modals */}
-      {showProfile && (
-        <ProfileModal user={currentUser} setUser={setCurrentUser} onClose={() => setShowProfile(false)} />
-      )}
       {showEmergency && <EmergencyModal onClose={() => setShowEmergency(false)} />}
     </div>
   );

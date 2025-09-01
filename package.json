@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",
+    "@heroicons/react": "^2.2.0",
     "@supabase/supabase-js": "^2.56.0",
     "chart.js": "^4.5.0",
     "lucide-react": "^0.541.0",

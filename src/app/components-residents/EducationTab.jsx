@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { BookOpenIcon } from "@heroicons/react/24/outline";
 
 export default function EducationTab() {
   const [articles, setArticles] = useState([]);
@@ -23,8 +24,6 @@ export default function EducationTab() {
     };
 
     window.addEventListener("storage", handleStorageChange);
-    // Also listen to custom events triggered by Education.jsx
-    window.addEventListener("storage", handleStorageChange);
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
@@ -33,16 +32,19 @@ export default function EducationTab() {
 
   return (
     <section className="py-8">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">
-        Educational Content
-      </h2>
+      <div className="flex items-center gap-3 mb-6 border-b pb-2">
+        <BookOpenIcon className="w-7 h-7 text-blue-500" />
+        <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
+          Educational Content
+        </h2>
+      </div>
 
       {articles.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {articles.map((article) => (
             <div
               key={article.id}
-              className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition p-6 flex flex-col justify-between"
+              className="bg-white/90 border border-gray-200 rounded-2xl shadow-md hover:shadow-lg transition p-5 flex flex-col justify-between"
             >
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
@@ -55,14 +57,14 @@ export default function EducationTab() {
                   <img
                     src={article.media}
                     alt="Article visual"
-                    className="rounded-lg border mb-4"
+                    className="rounded-lg border mb-4 w-full object-cover max-h-48"
                   />
                 )}
                 {article.media && article.mediaType === "video" && (
                   <video
                     controls
                     src={article.media}
-                    className="rounded-lg border mb-4 w-full"
+                    className="rounded-lg border mb-4 w-full max-h-48"
                   />
                 )}
                 {article.media && article.mediaType === "pdf" && (
