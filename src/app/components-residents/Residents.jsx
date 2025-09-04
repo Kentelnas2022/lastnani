@@ -2,15 +2,30 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/supabaseClient"; // <-- make sure this exists
+import Image from "next/image";
+import { supabase } from "@/supabaseClient";
+import { motion, AnimatePresence } from "framer-motion";
+
 import HomeTab from "./HomeTab";
 import ScheduleTab from "./ScheduleTab";
 import ReportsTab from "./ReportsTab";
 import FeedbackTab from "./FeedbackTab";
 import EducationTab from "./EducationTab";
-import ProfileModal from "./ProfileModal";
+import Profile from "./Profile";
 import EmergencyModal from "./EmergencyModal";
 
+import {
+  HomeModernIcon,
+  CalendarDaysIcon,
+  DocumentTextIcon,
+  ChatBubbleLeftRightIcon,
+  BookOpenIcon,
+  ArrowRightOnRectangleIcon,
+  UserCircleIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
+
+// --- schedules by purok ---
 const schedulesByPurok = {
   "Purok 1": [
     { day: "Monday", type: "Biodegradable", time: "6:00 AM", color: "green" },
@@ -33,17 +48,24 @@ const schedulesByPurok = {
   ],
 };
 
+const navTabs = [
+  { key: "home", label: "Home", icon: HomeModernIcon },
+  { key: "schedule", label: "Schedule", icon: CalendarDaysIcon },
+  { key: "reports", label: "Reports", icon: DocumentTextIcon },
+  { key: "feedback", label: "Feedback", icon: ChatBubbleLeftRightIcon },
+  { key: "education", label: "Education", icon: BookOpenIcon },
+  { key: "profile", label: "Profile", icon: UserCircleIcon },
+];
+
 export default function Residents() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("home");
-  const [showProfile, setShowProfile] = useState(false);
   const [showEmergency, setShowEmergency] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [reports, setReports] = useState([]);
   const [feedback, setFeedback] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 Check session & load resident profile
   useEffect(() => {
     const loadUser = async () => {
       const { data } = await supabase.auth.getSession();
@@ -51,27 +73,15 @@ export default function Residents() {
         router.push("/login");
         return;
       }
-
-      const { data: resident, error } = await supabase
+      const { data: resident } = await supabase
         .from("residents")
         .select("*")
         .eq("user_id", data.session.user.id)
         .maybeSingle();
 
-      if (error) {
-        console.error("Error fetching resident:", error.message);
-      }
-
       if (resident) {
         setCurrentUser(resident);
-
-        // Role check: if the user is not an official, redirect to login
-        if (resident.role !== 'official') {
-          console.warn("⚠️ User is not authorized to access this page.");
-          router.push("/login");
-        }
       } else {
-        console.warn("⚠️ No resident found for this user. Using fallback profile.");
         setCurrentUser({
           name: "Guest",
           purok: "Purok 1",
@@ -79,118 +89,210 @@ export default function Residents() {
           address: "N/A",
         });
       }
-
       setLoading(false);
     };
     loadUser();
   }, [router]);
 
-  const getNextCollection = () => {
-    if (!currentUser) return null;
-    const schedule = schedulesByPurok[currentUser.purok] || [];
-    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const today = new Date().getDay();
+  if (loading)
+    return <div className="text-center mt-10 text-gray-600">Loading...</div>;
 
-    for (let i = 0; i < 7; i++) {
-      const checkDay = (today + i) % 7;
-      const found = schedule.find((s) => s.day === days[checkDay]);
-      if (found) {
-        return {
-          ...found,
-          label: i === 0 ? "Today" : i === 1 ? "Tomorrow" : found.day,
-        };
-      }
-    }
-    return null;
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
   };
 
-  const nextCollection = getNextCollection();
+  // --- Weekly schedule navbar ---
+  const days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const todayIndex = new Date().getDay();
+  const schedule = schedulesByPurok[currentUser?.purok] || [];
 
-  if (loading) return <div className="text-center mt-10">Loading...</div>;
+  const getDaySchedule = (day) => schedule.find((s) => s.day === day);
 
   return (
-    <div className="bg-gray-100 min-h-screen pb-20">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 pb-6 pt-8">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">🏘️</div>
-            <div>
-              <h1 className="text-xl font-bold">Hello, {currentUser?.name?.split(" ")[0]}</h1>
-              <p className="text-white/80 text-sm">{currentUser?.purok}</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setShowProfile(true)}
-              className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center"
-            >
-              👤
-            </button>
-            <button
-              onClick={async () => {
-                await supabase.auth.signOut();
-                router.push("/login");
-              }}
-              className="px-3 py-1 bg-red-500 text-white rounded-xl text-sm"
-            >
-              Logout
-            </button>
+    <div className="flex min-h-screen bg-gray-100">
+      {/* Sidebar (desktop only) */}
+      <aside className="hidden md:flex md:flex-col w-64 bg-white border-r shadow-lg">
+        <div className="p-6 border-b">
+          <div className="flex items-center gap-3">
+            <Image
+              src="/logo.png"
+              alt="Logo"
+              width={40}
+              height={40}
+              className="rounded-full"
+            />
+            <h2 className="font-bold text-lg text-[#b1001a]">Tambacan</h2>
           </div>
         </div>
+        <nav className="flex-1 flex flex-col mt-4">
+          {navTabs.map((tab) => (
+            <button
+              key={tab.key}
+              className={`flex items-center gap-3 px-6 py-3 text-sm font-medium transition
+                ${
+                  activeTab === tab.key
+                    ? "bg-[#b1001a]/10 text-[#b1001a] border-l-4 border-[#b1001a]"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              <tab.icon className="w-5 h-5" />
+              {tab.label}
+            </button>
+          ))}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-6 py-3 mt-auto text-sm font-medium text-red-600 hover:bg-red-50"
+          >
+            <ArrowRightOnRectangleIcon className="w-5 h-5" />
+            Logout
+          </button>
+        </nav>
+      </aside>
 
-        {nextCollection && (
-          <div className="bg-white/95 rounded-2xl p-4 shadow-lg">
-            <div className="flex items-center justify-between text-gray-800">
-              <div>
-                <p className="text-sm text-gray-600">Next Collection</p>
-                <p className="text-xl font-bold text-indigo-600">
-                  {nextCollection.label}, {nextCollection.time}
-                </p>
-                <p className="text-sm text-gray-600">{nextCollection.type}</p>
-              </div>
-              <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">🗑️</div>
-            </div>
-          </div>
-        )}
-      </header>
+      {/* Main content */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <header className="bg-gradient-to-r from-[#8b0014] to-[#b1001a] text-white px-6 py-4 shadow flex justify-between items-center">
+          <h1 className="text-xl font-bold">Barangay Tambacan</h1>
+          {/* Desktop: button, Mobile: icon */}
+          <button
+            onClick={() => setActiveTab("profile")}
+            className="hidden md:block bg-white/20 px-4 py-2 rounded-lg hover:bg-white/30 transition"
+          >
+            Profile
+          </button>
+          <button
+            onClick={() => setActiveTab("profile")}
+            className="md:hidden bg-white/20 p-2 rounded-full hover:bg-white/30 transition"
+          >
+            <UserCircleIcon className="w-6 h-6" />
+          </button>
+        </header>
 
-      {/* Tabs */}
-      <main className="px-4 py-6 space-y-6">
-        {activeTab === "home" && <HomeTab setActiveTab={setActiveTab} />}
-        {activeTab === "schedule" && (
-          <ScheduleTab currentUser={currentUser} schedulesByPurok={schedulesByPurok} />
-        )}
-        {activeTab === "reports" && <ReportsTab reports={reports} setReports={setReports} />}
-        {activeTab === "feedback" && <FeedbackTab feedback={feedback} setFeedback={setFeedback} />}
-        {activeTab === "education" && <EducationTab />}
-      </main>
+        {/* Weekly Schedule Navbar */}
+        <nav className="bg-white/95 backdrop-blur-md shadow border-b border-gray-200 overflow-x-auto">
+          <ul className="flex gap-3 px-4 py-3 min-w-max snap-x">
+            {days.map((day, idx) => {
+              const sched = getDaySchedule(day);
+              const isToday = idx === todayIndex;
+              const isTomorrow = idx === (todayIndex + 1) % 7;
 
-      {/* Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2">
-        {[ 
-          { key: "home", label: "Home", icon: "🏠" },
-          { key: "schedule", label: "Schedule", icon: "📅" },
-          { key: "reports", label: "Reports", icon: "📢" },
-          { key: "feedback", label: "Feedback", icon: "💬" },
-          { key: "education", label: "Education", icon: "📚" },
-        ].map((tab) => (
+              return (
+                <li
+                  key={day}
+                  className={`px-4 py-2 rounded-xl shadow-sm border text-sm flex flex-col items-center min-w-[110px] snap-start
+                    ${
+                      isToday
+                        ? "bg-green-100 border-green-400 text-green-800 font-semibold"
+                        : isTomorrow
+                        ? "bg-blue-100 border-blue-400 text-blue-800 font-semibold"
+                        : "bg-white border-gray-200 text-gray-700"
+                    }`}
+                >
+                  <span>{day}</span>
+                  {sched ? (
+                    <span
+                      className={`mt-1 text-xs px-2 py-0.5 rounded-full bg-${sched.color}-100 text-${sched.color}-700`}
+                    >
+                      {sched.type} • {sched.time}
+                    </span>
+                  ) : (
+                    <span className="mt-1 text-xs text-gray-400">
+                      No pickup
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        {/* Tab Content */}
+        <main className="flex-1 p-6 pb-28 md:pb-6">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              className="rounded-3xl bg-white/95 backdrop-blur-md shadow-2xl p-6 min-h-[400px]"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -30 }}
+              transition={{ duration: 0.4 }}
+            >
+              {activeTab === "home" && (
+                <HomeTab currentUser={currentUser} setActiveTab={setActiveTab} />
+              )}
+              {activeTab === "schedule" && (
+                <ScheduleTab
+                  currentUser={currentUser}
+                  schedulesByPurok={schedulesByPurok}
+                />
+              )}
+              {activeTab === "reports" && (
+                <ReportsTab reports={reports} setReports={setReports} />
+              )}
+              {activeTab === "feedback" && (
+                <FeedbackTab feedback={feedback} setFeedback={setFeedback} />
+              )}
+              {activeTab === "education" && <EducationTab />}
+              {activeTab === "profile" && (
+                <Profile user={currentUser} setUser={setCurrentUser} />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
+
+      {/* Floating SOS button */}
+      <motion.button
+        onClick={() => setShowEmergency(true)}
+        className="fixed bottom-24 md:bottom-6 right-6 bg-gradient-to-r from-red-600 to-red-700 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-2xl ring-4 ring-red-400/30"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        animate={{
+          scale: [1, 1.05, 1],
+          boxShadow: [
+            "0 0 15px #b1001a",
+            "0 0 30px #b1001a",
+            "0 0 15px #b1001a",
+          ],
+        }}
+        transition={{ repeat: Infinity, duration: 2 }}
+      >
+        <ExclamationTriangleIcon className="w-8 h-8" />
+      </motion.button>
+
+      {/* Emergency Modal */}
+      {showEmergency && (
+        <EmergencyModal onClose={() => setShowEmergency(false)} />
+      )}
+
+      {/* Bottom Navigation (mobile only) */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-inner flex justify-around py-1 md:hidden">
+        {navTabs.map((tab) => (
           <button
             key={tab.key}
-            className={`flex flex-col items-center p-2 ${activeTab === tab.key ? "text-indigo-600" : "text-gray-500"}`}
+            className={`flex flex-col items-center text-xs px-3 py-2 rounded-lg transition ${
+              activeTab === tab.key
+                ? "text-[#b1001a] bg-[#b1001a]/10"
+                : "text-gray-500 hover:bg-gray-100"
+            }`}
             onClick={() => setActiveTab(tab.key)}
           >
-            <span>{tab.icon}</span>
-            <span className="text-xs">{tab.label}</span>
+            <tab.icon className="w-6 h-6 mb-0.5" />
+            <span className="text-[11px]">{tab.label}</span>
           </button>
         ))}
       </nav>
-
-      {/* Modals */}
-      {showProfile && (
-        <ProfileModal user={currentUser} setUser={setCurrentUser} onClose={() => setShowProfile(false)} />
-      )}
-      {showEmergency && <EmergencyModal onClose={() => setShowEmergency(false)} />}
     </div>
   );
 }

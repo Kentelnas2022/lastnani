@@ -77,7 +77,7 @@ export default function Login() {
     // Role-based redirect
     const adminEmail = "tristandominicparajes.202200583@gmail.com"; // Admin
     const collectorEmail = "parajestristan4@gmail.com"; // Collector
-
+    
     if (user.email === adminEmail) {
       router.push("/"); // official section
     } else if (user.email === collectorEmail) {

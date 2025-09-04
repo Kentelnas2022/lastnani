@@ -23,6 +23,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/components-residents/ScheduleTab.jsx", "src/app/components-residents/Residents.jsx", "src/app/components-residents/ReportsTab.jsx", "src/app/components-residents/ProfileModal.jsx", "src/app/components-residents/HomeTab.jsx", "src/app/components-residents/FeedbackTab.jsx", "src/app/components-official/Reports.jsx", "src/app/components-official/NavigationTabs.jsx", "src/app/components-official/Dashboard.jsx", "src/app/components-official/Analytics.jsx", "src/app/components-official/Education.jsx", "src/app/components-official/Routes.jsx", "src/app/components-official/Schedule.jsx", "src/app/components-collector/Schedule.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/components-residents/ScheduleTab.jsx", "src/app/components-residents/Residents.jsx", "src/app/components-residents/ReportsTab.jsx", "src/app/components-residents/Profile.jsxrc/app/components-residents/HomeTab.jsx", "src/app/components-residents/FeedbackTab.jsx", "src/app/components-official/Reports.jsx", "src/app/components-official/NavigationTabs.jsx", "src/app/components-official/Dashboard.jsx", "src/app/components-official/Analytics.jsx", "src/app/components-official/Education.jsx", "src/app/components-official/Routes.jsx", "src/app/components-official/Schedule.jsx", "src/app/components-collector/Schedule.jsx", "src/app/residents/page.jsx", "src/app/residents/page.jsx"],
   "exclude": ["node_modules"]
 }

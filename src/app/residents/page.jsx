@@ -7,7 +7,7 @@ import ScheduleTab from "../components-residents/ScheduleTab";
 import ReportsTab from "../components-residents/ReportsTab";
 import FeedbackTab from "../components-residents/FeedbackTab";
 import EducationTab from "../components-residents/EducationTab";
-import ProfileModal from "../components-residents/ProfileModal";
+import ProfileModal from "../components-residents/Profile";
 import EmergencyModal from "../components-residents/EmergencyModal";
 
 // 🔹 Demo users
