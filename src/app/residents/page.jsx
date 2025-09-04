@@ -7,7 +7,11 @@ import ScheduleTab from "../components-residents/ScheduleTab";
 import ReportsTab from "../components-residents/ReportsTab";
 import FeedbackTab from "../components-residents/FeedbackTab";
 import EducationTab from "../components-residents/EducationTab";
+<<<<<<< HEAD
 import ProfileModal from "../components-residents/Profile";
+=======
+import Profile from "../components-residents/Profile";
+>>>>>>> c5b789782ef6c73f8b74e240b9aa12e5e7497d3e
 import EmergencyModal from "../components-residents/EmergencyModal";
 
 // 🔹 Demo users
@@ -94,7 +98,7 @@ export default function ResidentsPage() {
       </nav>
 
       {/* Modals */}
-      {showProfile && <ProfileModal user={currentUser} setUser={setCurrentUser} onClose={() => setShowProfile(false)} />}
+      {showProfile && <Profile user={currentUser} setUser={setCurrentUser} onClose={() => setShowProfile(false)} />}
       {showEmergency && <EmergencyModal onClose={() => setShowEmergency(false)} />}
     </Residents>
   );

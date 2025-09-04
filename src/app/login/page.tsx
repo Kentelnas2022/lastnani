@@ -18,7 +18,7 @@ export default function Login() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    const speed = isDeleting ? 50 : 150;
+    const speed = isDeleting ? 50 : 120;
     const timeout = setTimeout(() => {
       const currentMessage = messages[messageIndex];
       if (!isDeleting) {
@@ -56,7 +56,7 @@ export default function Login() {
     const user = data.user;
     if (!user) return;
 
-    // 🔹 Ensure resident profile exists
+    // Ensure resident profile exists
     const { data: resident, error: fetchError } = await supabase
       .from("residents")
       .select("*")
@@ -88,26 +88,28 @@ export default function Login() {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100">
-      <div className="w-1/2 flex items-center justify-center">
-        <div className="text-center px-8">
-          <h1 className="text-5xl font-bold mb-6 border-r-4 pr-2 animate-blink-cursor text-gray-800">
+    <div className="min-h-screen flex flex-col md:flex-row items-center justify-center bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 px-2 py-8">
+      {/* Typing Animation Section */}
+      <div className="w-full md:w-1/2 flex items-center justify-center mb-8 md:mb-0">
+        <div className="text-center px-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 border-r-4 pr-2 animate-blink-cursor text-gray-800 min-h-[48px]">
             {displayedText}
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-base sm:text-lg text-gray-600">
             Log in to continue exploring your dashboard.
           </p>
         </div>
       </div>
 
-      <div className="w-1/2 flex items-center justify-center">
+      {/* Login Form Section */}
+      <div className="w-full md:w-1/2 flex items-center justify-center">
         <form
           onSubmit={handleLogin}
-          className="bg-white/60 backdrop-blur-lg p-8 rounded-3xl shadow-2xl w-full max-w-md hover:scale-105 transition-transform"
+          className="bg-white/80 backdrop-blur-lg p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-md"
         >
-          <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+          <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
             Login
-          </h1>
+          </h2>
           {error && (
             <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
           )}
