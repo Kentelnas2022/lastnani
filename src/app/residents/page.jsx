@@ -7,17 +7,25 @@ import ScheduleTab from "../components-residents/ScheduleTab";
 import ReportsTab from "../components-residents/ReportsTab";
 import FeedbackTab from "../components-residents/FeedbackTab";
 import EducationTab from "../components-residents/EducationTab";
-<<<<<<< HEAD
-import ProfileModal from "../components-residents/Profile";
-=======
 import Profile from "../components-residents/Profile";
->>>>>>> c5b789782ef6c73f8b74e240b9aa12e5e7497d3e
 import EmergencyModal from "../components-residents/EmergencyModal";
 
 // 🔹 Demo users
 const demoUsers = [
-  { mobile: "09123456789", password: "resident123", name: "Maria Santos", purok: "Purok 1", address: "Street 5" },
-  { mobile: "09987654321", password: "juan123", name: "Juan Dela Cruz", purok: "Purok 2", address: "Street 3" },
+  {
+    mobile: "09123456789",
+    password: "resident123",
+    name: "Maria Santos",
+    purok: "Purok 1",
+    address: "Street 5",
+  },
+  {
+    mobile: "09987654321",
+    password: "juan123",
+    name: "Juan Dela Cruz",
+    purok: "Purok 2",
+    address: "Street 3",
+  },
 ];
 
 // 🔹 Schedules
@@ -53,7 +61,12 @@ export default function ResidentsPage() {
       setReports(parsed.reports || []);
       setFeedback(parsed.feedback || []);
     } else {
-      setCurrentUser({ name: "Guest User", purok: "Purok 1", mobile: "Guest", address: "Demo" });
+      setCurrentUser({
+        name: "Guest User",
+        purok: "Purok 1",
+        mobile: "Guest",
+        address: "Demo",
+      });
     }
   }, []);
 
@@ -61,17 +74,31 @@ export default function ResidentsPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (currentUser) {
-      localStorage.setItem("residentData", JSON.stringify({ user: currentUser, reports, feedback }));
+      localStorage.setItem(
+        "residentData",
+        JSON.stringify({ user: currentUser, reports, feedback })
+      );
     }
   }, [currentUser, reports, feedback]);
 
   return (
     <Residents>
       <main className="px-4 py-6 space-y-6">
-        {activeTab === "home" && <HomeTab currentUser={currentUser} setActiveTab={setActiveTab} />}
-        {activeTab === "schedule" && <ScheduleTab currentUser={currentUser} schedulesByPurok={schedulesByPurok} />}
-        {activeTab === "reports" && <ReportsTab reports={reports} setReports={setReports} />}
-        {activeTab === "feedback" && <FeedbackTab feedback={feedback} setFeedback={setFeedback} />}
+        {activeTab === "home" && (
+          <HomeTab currentUser={currentUser} setActiveTab={setActiveTab} />
+        )}
+        {activeTab === "schedule" && (
+          <ScheduleTab
+            currentUser={currentUser}
+            schedulesByPurok={schedulesByPurok}
+          />
+        )}
+        {activeTab === "reports" && (
+          <ReportsTab reports={reports} setReports={setReports} />
+        )}
+        {activeTab === "feedback" && (
+          <FeedbackTab feedback={feedback} setFeedback={setFeedback} />
+        )}
         {activeTab === "education" && <EducationTab />}
       </main>
 
@@ -83,7 +110,7 @@ export default function ResidentsPage() {
           { key: "reports", label: "Reports", icon: "📢" },
           { key: "feedback", label: "Feedback", icon: "💬" },
           { key: "education", label: "Education", icon: "📚" },
-        ].map(tab => (
+        ].map((tab) => (
           <button
             key={tab.key}
             className={`flex flex-col items-center p-2 ${
@@ -98,8 +125,16 @@ export default function ResidentsPage() {
       </nav>
 
       {/* Modals */}
-      {showProfile && <Profile user={currentUser} setUser={setCurrentUser} onClose={() => setShowProfile(false)} />}
-      {showEmergency && <EmergencyModal onClose={() => setShowEmergency(false)} />}
+      {showProfile && (
+        <Profile
+          user={currentUser}
+          setUser={setCurrentUser}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
+      {showEmergency && (
+        <EmergencyModal onClose={() => setShowEmergency(false)} />
+      )}
     </Residents>
   );
 }
